@@ -3,14 +3,28 @@ import java.util.Scanner;
 public class miniProject {
 
     public static class Mahasiswa {
-        String nama;
-        String nim;
-        String kelas;
+        private String nama;
+        private String nim;
+        private String kelas;
         double[] nilai;
 
-        public String getInformasi(){
-            return "a";
+        public void setNama(String nama){ this.nama = nama; }
+        public void setNim(String nim){
+            if (nim.length() == 10){
+                this.nim = nim;
+            }
+            else{
+                System.out.println("Format NIM tidak valid");
+            }
         }
+        public void setKelas(String kelas){ this.kelas = kelas; }
+
+
+    }
+
+    public class Nilai {
+        String nama;
+        double nilai;
     }
 
     static Mahasiswa[] dataMahasiswa = new Mahasiswa[0];
@@ -88,14 +102,11 @@ public class miniProject {
             Scanner input = new Scanner(System.in);
             System.out.println("\nSISTEM MONITOR NILAI KELAS");
             System.out.println("1. Input Data\n2. Tampilan Data\n3. Statistik\n4. Keluar");
-            System.out.print("Pilihan : ");
-            int pilihan = input.nextInt();
+            System.out.print("Pilihan: ");
+            int pilihan = Integer.parseInt(input.nextLine().trim());
             switch (pilihan) {
                 case 1 -> inputData(input);
                 case 2 -> {
-                    for (Mahasiswa m : dataMahasiswa){
-                        System.out.println(m);
-                    }
                 }
                 case 3 -> {
                 }
