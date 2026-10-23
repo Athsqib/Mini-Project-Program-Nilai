@@ -9,6 +9,7 @@ public class miniProject {
         double[] nilai;
 
         public void setNama(String nama){ this.nama = nama; }
+
         public void setNim(String nim){
             if (nim.length() == 10){
                 this.nim = nim;
@@ -17,6 +18,7 @@ public class miniProject {
                 System.out.println("Format NIM tidak valid");
             }
         }
+        
         public void setKelas(String kelas){ this.kelas = kelas; }
 
 
