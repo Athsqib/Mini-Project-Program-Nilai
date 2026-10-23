@@ -7,13 +7,17 @@ public class miniProject {
         String nim;
         String kelas;
         double[] nilai;
+
+        public String getInformasi(){
+            return "a";
+        }
     }
 
     static Mahasiswa[] dataMahasiswa = new Mahasiswa[0];
 
     public static double bacaAngka(Scanner input, String prompt, double min, double max){
         while (true) {
-            System.out.println(prompt);
+            System.out.print(prompt);
             String s = input.nextLine().trim();
             try {
                 double value = Double.parseDouble(s);
@@ -55,48 +59,43 @@ public class miniProject {
 
     }
 
+    public static void inputData(Scanner input){
+        int n = (int) bacaAngka(input, "Silakan input jumlah mahasiswa (3-20): ", 3, 20);
+        Mahasiswa[] m = new Mahasiswa[n];
+        for (int i = 0; i < m.length; i++) {
+            m[i] = new Mahasiswa();
+            System.out.println("\nData mahasiswa ke-" + (i + 1));
+            System.out.print("NIM: ");
+            m[i].nim = input.nextLine().trim();
+            System.out.print("Nama: ");
+            m[i].nama = input.nextLine().trim();
+            System.out.print("Kelas: ");
+            m[i].kelas = input.nextLine().trim();
+
+            int t = (int) bacaAngka(input, "Silakan masukkan jumlah nilai mata kuliah (3-5): ", 3, 5);
+            m[i].nilai = new double[t];
+            for (int j = 0; j < t; j++){
+                m[i].nilai[j] = bacaAngka(input, "Nilai mata kuliah ke-"+(j+1)+": ", 0, 100);
+            }
+        }
+        dataMahasiswa = m;
+        System.out.println("\nData berhasil disimpan ("+n+" mahasiswa).");
+    }
+
     public static void main(String[] args) {
         boolean inProgram = true;
         while (inProgram) {
             Scanner input = new Scanner(System.in);
-            System.out.println("SISTEM MONITOR NILAI KELAS");
+            System.out.println("\nSISTEM MONITOR NILAI KELAS");
             System.out.println("1. Input Data\n2. Tampilan Data\n3. Statistik\n4. Keluar");
             System.out.print("Pilihan : ");
             int pilihan = input.nextInt();
             switch (pilihan) {
-                case 1 -> {
-                    boolean masihInput = true;
-                    while (masihInput) {
-                        System.out.print("Silakan input jumlah mahasiswa (3-20): ");
-                        int n = input.nextInt();
-                        if (n < 3 || n > 20) {
-                            System.out.println("Jumlah mahasiswa tidak valid.\n");
-                            break;
-                        }
-                        Mahasiswa[] m = new Mahasiswa[n];
-
-                        for (int i = 0; i < m.length; i++) {
-                            m[i] = new Mahasiswa();
-                            System.out.println("\nData mahasiswa ke-" + (i + 1));
-                            System.out.println("NIM: ");
-                            m[i].nim = input.nextLine();
-                            System.out.println("Nama: ");
-                            m[i].nama = input.nextLine();
-                            System.out.println("Kelas: ");
-                            m[i].kelas = input.nextLine();
-                            System.out.println("Silakan input jumlah nilai mata kuliah (3-5): ");
-                            int t = Integer.parseInt(input.nextLine());
-                            boolean inputNilai = true;
-                            while (inputNilai) {
-                                if (t < 3 || t > 5) {
-                                    System.out.println("Jumlah nilai mata kuliah tidak valid.");
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
+                case 1 -> inputData(input);
                 case 2 -> {
+                    for (Mahasiswa m : dataMahasiswa){
+                        System.out.println(m);
+                    }
                 }
                 case 3 -> {
                 }
