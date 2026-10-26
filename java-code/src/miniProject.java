@@ -1,7 +1,9 @@
+import java.util.Map;
 import java.util.Scanner;
+import java.util.TreeMap;
 
 public class miniProject {
-
+    
     public static class Nilai {
         private String namaMataKuliah;
         private double angka;
@@ -23,7 +25,7 @@ public class miniProject {
         private String nama;
         private String nim;
         private String kelas;
-        private Nilai[] daftarNilai ;
+        private Nilai[] daftarNilai;
 
         public void setNama(String nama){ this.nama = nama; }
         public void setNim(String nim){ this.nim = nim; }
@@ -34,10 +36,21 @@ public class miniProject {
         public String getNim(){ return nim; }
         public String getKelas(){ return kelas; }
         public Nilai[] getDaftarNilai(){ return daftarNilai; }
+        public double getJumlahNilai(){ 
+            if (daftarNilai == null || daftarNilai.length == 0){
+                return 0;
+            }
+            double total = 0;
+            for (Nilai x : daftarNilai){
+                total += x.getAngka();
+            }
+            return total;
+        }
 
     }
 
     static Mahasiswa[] dataMahasiswa = new Mahasiswa[0];
+    static final Map<String, Double> rataRataPerKelas = new TreeMap<>();
 
     public static double bacaAngka(Scanner input, String prompt, double min, double max) {
         while (true) {
@@ -73,11 +86,53 @@ public class miniProject {
     }
 
     public static double rataRataMahasiswa() {
-        return 1;
+        double total = 0;
+        int jumlahNilai = 0;
+
+        for (Mahasiswa m : dataMahasiswa) {
+            total += m.getJumlahNilai();
+
+            Nilai[] daftarNilai = m.getDaftarNilai();
+            if (daftarNilai != null) {
+                jumlahNilai += daftarNilai.length;
+            }
+        }
+
+        return jumlahNilai == 0 ? 0 : total / jumlahNilai;
+    }
+
+    public static void hitungRataRataPerKelas() {
+        rataRataPerKelas.clear();
+
+        Map<String, Double> totalKelas = new TreeMap<>();
+        Map<String, Integer> jumlahNilaiKelas = new TreeMap<>();
+
+        for (Mahasiswa m : dataMahasiswa) {
+            Nilai[] daftarNilai = m.getDaftarNilai();
+            if (daftarNilai == null || daftarNilai.length == 0) {
+                continue;
+            }
+
+            totalKelas.merge(m.getKelas(), m.getJumlahNilai(), Double::sum);
+            jumlahNilaiKelas.merge(m.getKelas(), daftarNilai.length, Integer::sum);
+        }
+
+        for (String kelas : totalKelas.keySet()) {
+            int jumlahNilai = jumlahNilaiKelas.get(kelas);
+            if (jumlahNilai > 0) {
+                rataRataPerKelas.put(kelas, totalKelas.get(kelas) / jumlahNilai);
+            }
+        }
     }
 
     public static double rataRataKelas() {
-        return 1;
+        if (rataRataPerKelas.isEmpty()) return 0;
+
+        double total = 0;
+        for (double rata : rataRataPerKelas.values()) {
+            total += rata;
+        }
+        return total / rataRataPerKelas.size();
     }
 
     public static String cariNim() {
@@ -92,19 +147,43 @@ public class miniProject {
         return "1";
     }
 
+    public static boolean tampilanWarning(){
+        if (dataMahasiswa.length == 0){
+            System.out.println("Belum ada data. Tolong masukkan data terlebih dahulu.");
+            return true;
+        }
+        return false;
+    }
+
     public static void statistik(Scanner input) {
         boolean inStatistik = true;
         while (inStatistik) {
-            System.out.println("\nMENU SATISTIK");
-            System.out.println("1. Total Mahasiswa\n2. Rata-Rata Mahasiswa\n3. Rata-Rata Kelas\n4. Nilai Tertinggi\n5. Predikat\n6. Keluar");
-            int pilihan = (int) bacaAngka(input, "Pilihan: ", 1, 5);
+            System.out.println("\nMENU STATISTIK");
+            System.out.println("1. Total Mahasiswa\n2. Rata-Rata Mahasiswa\n3. Rata-Rata Kelas\n4. Nilai Tertinggi\n5. Predikat\n6. Semua\n7. Keluar");
+            int pilihan = (int) bacaAngka(input, "Pilihan: ", 1, 7);
             switch (pilihan) {
-                case 1 -> {}
-                case 2 -> {}
-                case 3 -> {}
-                case 4 -> {}
-                case 5 -> {}
+                case 1 -> {
+                    if (tampilanWarning()) break;
+                    System.out.printf("Total Mahasiswa: %d\n", dataMahasiswa.length);
+                }
+                case 2 -> {
+                    if (tampilanWarning()) break;
+                    System.out.printf("Rata-rata Nilai Keseluruhan Manusia: %.1f%n", rataRataMahasiswa());
+                }
+                case 3 -> {
+                    if (tampilanWarning()) break;
+                    System.out.printf("Rata-rata Nilai Keseluruhan Kelas: %.2f%n", rataRataKelas());
+                }
+                case 4 -> {
+                    if (tampilanWarning()) break;
+                }
+                case 5 -> {
+                    if (tampilanWarning()) break;
+                }
                 case 6 -> {
+                    if (tampilanWarning()) break;
+                }
+                case 7 -> {
                     inStatistik = false;
                 }
             }
@@ -115,7 +194,28 @@ public class miniProject {
         boolean inTampilan = true;
         while (inTampilan) {
             System.out.println("\nMENU TAMPILAN DATA");
-            System.out.println("1. Data Individu Mahasiswa\n2. Daftar Mahasiswa\n3. ");
+            System.out.println("1. Data Individu Mahasiswa\n2. Daftar Mahasiswa\n3. Keluar");
+            int pilihan = (int) bacaAngka(input, "Pilihan: ", 1, 3);
+            switch (pilihan) {
+                case 1 -> {
+                    if (tampilanWarning()) break;
+                }
+                case 2 -> {
+                    if (tampilanWarning()) break;
+                    System.out.printf("%-12s %-20s %-8s%n", "NIM", "NAMA", "KELAS");
+                    for (Mahasiswa m : dataMahasiswa) {
+                        System.out.printf("%-12s %-20s %-8s%n", m.getNim(), m.getNama(), m.getKelas());
+                    }
+
+                    System.out.println("\nRata-rata per kelas:");
+                    for (Map.Entry<String, Double> entry : rataRataPerKelas.entrySet()) {
+                        System.out.printf("Kelas %-6s : %.2f%n", entry.getKey(), entry.getValue());
+                    }
+                }
+                case 3 -> {
+                    inTampilan = false;
+                }
+            }
         }
     }
 
@@ -130,7 +230,7 @@ public class miniProject {
             System.out.print("Nama: ");
             m[i].setNama(input.nextLine().trim());
             System.out.print("Kelas: ");
-            m[i].setKelas(input.nextLine().trim());
+            m[i].setKelas(input.nextLine().trim().toUpperCase());
 
             int t = (int) bacaAngka(input, "Silakan masukkan jumlah nilai mata kuliah (3-5): ", 3, 5);
             Nilai[] kumpulanNilai = new Nilai[t];
@@ -147,6 +247,7 @@ public class miniProject {
             m[i].setDaftarNilai(kumpulanNilai);
         }
         dataMahasiswa = m;
+        hitungRataRataPerKelas();
         System.out.println("\nData berhasil disimpan ("+ n +" mahasiswa).");
     }
 
@@ -159,7 +260,7 @@ public class miniProject {
             int pilihan = (int) bacaAngka(input, "PIlihan: ", 1, 4);
             switch (pilihan) {
                 case 1 -> inputData(input);
-                case 2 -> {}
+                case 2 -> tampilanData(input);
                 case 3 -> statistik(input);
                 case 4 -> {
                     System.out.println("Terima Kasih Telah Menggunakan Program Ini!");
