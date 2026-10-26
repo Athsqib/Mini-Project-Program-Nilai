@@ -36,7 +36,7 @@ public class miniProject {
         public String getNim(){ return nim; }
         public String getKelas(){ return kelas; }
         public Nilai[] getDaftarNilai(){ return daftarNilai; }
-        public double getJumlahNilai(){ 
+        public double getRataRataNilai(){ 
             if (daftarNilai == null || daftarNilai.length == 0){
                 return 0;
             }
@@ -44,7 +44,7 @@ public class miniProject {
             for (Nilai x : daftarNilai){
                 total += x.getAngka();
             }
-            return total;
+            return total / daftarNilai.length;
         }
 
     }
@@ -86,26 +86,20 @@ public class miniProject {
     }
 
     public static double rataRataMahasiswa() {
+        if (dataMahasiswa.length == 0) return 0;
+
         double total = 0;
-        int jumlahNilai = 0;
-
         for (Mahasiswa m : dataMahasiswa) {
-            total += m.getJumlahNilai();
-
-            Nilai[] daftarNilai = m.getDaftarNilai();
-            if (daftarNilai != null) {
-                jumlahNilai += daftarNilai.length;
-            }
+            total += m.getRataRataNilai();
         }
-
-        return jumlahNilai == 0 ? 0 : total / jumlahNilai;
+        return total / dataMahasiswa.length;
     }
 
     public static void hitungRataRataPerKelas() {
         rataRataPerKelas.clear();
 
         Map<String, Double> totalKelas = new TreeMap<>();
-        Map<String, Integer> jumlahNilaiKelas = new TreeMap<>();
+        Map<String, Integer> jumlahMahasiswaKelas = new TreeMap<>();
 
         for (Mahasiswa m : dataMahasiswa) {
             Nilai[] daftarNilai = m.getDaftarNilai();
@@ -113,14 +107,14 @@ public class miniProject {
                 continue;
             }
 
-            totalKelas.merge(m.getKelas(), m.getJumlahNilai(), Double::sum);
-            jumlahNilaiKelas.merge(m.getKelas(), daftarNilai.length, Integer::sum);
+            totalKelas.merge(m.getKelas(), m.getRataRataNilai(), Double::sum);
+            jumlahMahasiswaKelas.merge(m.getKelas(), 1, Integer::sum);
         }
 
         for (String kelas : totalKelas.keySet()) {
-            int jumlahNilai = jumlahNilaiKelas.get(kelas);
-            if (jumlahNilai > 0) {
-                rataRataPerKelas.put(kelas, totalKelas.get(kelas) / jumlahNilai);
+            int jumlahMahasiswa = jumlahMahasiswaKelas.get(kelas);
+            if (jumlahMahasiswa > 0) {
+                rataRataPerKelas.put(kelas, totalKelas.get(kelas) / jumlahMahasiswa);
             }
         }
     }
@@ -135,8 +129,51 @@ public class miniProject {
         return total / rataRataPerKelas.size();
     }
 
-    public static String cariNim() {
-        return "1";
+    public static Mahasiswa cariNim(Scanner input, String prompt) {
+        while (true){
+            System.out.print(prompt);
+            String kataKunci = input.nextLine().trim();
+
+            if (kataKunci.equals("0")) {
+                return null;
+            }
+            if (!kataKunci.matches("\\d+")){
+                System.out.println("Format NIM tidak valid! NIM harus berupa angka.");
+                continue;
+            }
+
+            Mahasiswa[] kandidat = new Mahasiswa[dataMahasiswa.length];
+            int jumlahKandidat = 0;
+
+            for (Mahasiswa m : dataMahasiswa) {
+                if (m.getNim().contains(kataKunci)) {
+                    kandidat[jumlahKandidat] = m;
+                    jumlahKandidat++;
+                }
+            }
+
+            if (jumlahKandidat == 0) {
+                System.out.println("Tidak ada NIM yang cocok dengan \"" + kataKunci + "\".");
+                continue;
+            }
+
+            if (jumlahKandidat == 1) {
+                return kandidat[0];
+            }
+
+            System.out.println("\nDitemukan " + jumlahKandidat + " mahasiswa:");
+            for (int i = 0; i < jumlahKandidat; i++) {
+                Mahasiswa m = kandidat[i];
+                System.out.printf("%d. %s | %s | %s%n",
+                    i + 1, m.getNim(), m.getNama(), m.getKelas());
+            }
+
+            int pilih = (int) bacaAngka(input, "Pilih nomor (0 untuk batal): ", 0, jumlahKandidat);
+            if (pilih == 0) {
+                return null;
+            }
+            return kandidat[pilih - 1];
+        }
     }
 
     public static float nilaiTertinggi() {
@@ -159,7 +196,7 @@ public class miniProject {
         boolean inStatistik = true;
         while (inStatistik) {
             System.out.println("\nMENU STATISTIK");
-            System.out.println("1. Total Mahasiswa\n2. Rata-Rata Mahasiswa\n3. Rata-Rata Kelas\n4. Nilai Tertinggi\n5. Predikat\n6. Semua\n7. Keluar");
+            System.out.println("1. Total Mahasiswa\n2. Rata-Rata Keseluruhan Mahasiswa\n3. Rata-Rata Keseluruhan Kelas\n4. Nilai Tertinggi\n5. Predikat\n6. Semua\n7. Keluar");
             int pilihan = (int) bacaAngka(input, "Pilihan: ", 1, 7);
             switch (pilihan) {
                 case 1 -> {
@@ -172,6 +209,10 @@ public class miniProject {
                 }
                 case 3 -> {
                     if (tampilanWarning()) break;
+                    System.out.println("\nRata-rata per Kelas:");
+                    for (Map.Entry<String, Double> entry : rataRataPerKelas.entrySet()) {
+                        System.out.printf("Kelas %-6s : %.2f%n", entry.getKey(), entry.getValue());
+                    }
                     System.out.printf("Rata-rata Nilai Keseluruhan Kelas: %.2f%n", rataRataKelas());
                 }
                 case 4 -> {
@@ -199,17 +240,38 @@ public class miniProject {
             switch (pilihan) {
                 case 1 -> {
                     if (tampilanWarning()) break;
+
+                    Mahasiswa m = cariNim(input, "Masukkan NIM Mahasiswa yang ingin ditampilkan (0 untuk batal): ");
+                    if (m == null) {
+                        System.out.println("Pencarian dibatalkan.");
+                        break;
+                    }
+
+                    System.out.println("\nDATA MAHASISWA");
+                    System.out.println("NIM   : " + m.getNim());
+                    System.out.println("Nama  : " + m.getNama());
+                    System.out.println("Kelas : " + m.getKelas());
+
+                    System.out.println("Nilai:");
+                    Nilai[] daftarNilai = m.getDaftarNilai();
+                    if (daftarNilai != null) {
+                        for (Nilai n : daftarNilai) {
+                            System.out.printf("  %-20s : %.2f%n", n.getNama(), n.getAngka());
+                        }
+                    }
+
+                    System.out.printf("Rata-rata mahasiswa : %.2f%n", m.getRataRataNilai());
+
+                    Double rataKelas = rataRataPerKelas.get(m.getKelas());
+                    if (rataKelas != null) {
+                        System.out.printf("Rata-rata kelas %s : %.2f%n", m.getKelas(), rataKelas);
+                    }
                 }
                 case 2 -> {
                     if (tampilanWarning()) break;
                     System.out.printf("%-12s %-20s %-8s%n", "NIM", "NAMA", "KELAS");
                     for (Mahasiswa m : dataMahasiswa) {
                         System.out.printf("%-12s %-20s %-8s%n", m.getNim(), m.getNama(), m.getKelas());
-                    }
-
-                    System.out.println("\nRata-rata per kelas:");
-                    for (Map.Entry<String, Double> entry : rataRataPerKelas.entrySet()) {
-                        System.out.printf("Kelas %-6s : %.2f%n", entry.getKey(), entry.getValue());
                     }
                 }
                 case 3 -> {
@@ -225,7 +287,19 @@ public class miniProject {
         for (int i = 0; i < m.length; i++) {
             m[i] = new Mahasiswa();
             System.out.println("\nData mahasiswa ke-" + (i + 1));
-            String nimValid = bacaNim(input, "NIM: ");
+            String nimValid;
+            while (true) {
+                nimValid = bacaNim(input, "NIM: ");
+                boolean sudahAda = false;
+                for (int k = 0; k < i; k++) {
+                    if (m[k].getNim().equals(nimValid)) {
+                        sudahAda = true;
+                        break;
+                    }
+                }
+                if (!sudahAda) break;
+                System.out.println("NIM sudah terdaftar. Masukkan NIM lain.");
+            }
             m[i].setNim(nimValid);
             System.out.print("Nama: ");
             m[i].setNama(input.nextLine().trim());
